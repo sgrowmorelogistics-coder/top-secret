@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>love_protocol :: SHERRY</title>
+
+<style>
+/* ================= GLOBAL ================= */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  height: 100vh;
+  background: #030407;
+  color: #b9faff;
+  overflow: hidden;
+  font-family: "Times New Roman", serif;
+}
+
+/* ================= MATRIX RAIN ================= */
+canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ================= SCANLINES ================= */
+body::after {
+  content:"";
+  position: fixed;
+  inset:0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.02),
+    rgba(255,255,255,0.02) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events:none;
+}
+
+/* ================= WATERMARK ================= */
+.watermark {
+  position: fixed;
+  inset: 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:72px;
+  letter-spacing:10px;
+  color: rgba(0,255,255,0.035);
+  animation: fade 8s infinite;
+  pointer-events:none;
+  z-index:1;
+}
+
+@keyframes fade {
+  0%,100%{opacity:.03}
+  50%{opacity:.08}
+}
+
+/* ================= TERMINAL ================= */
+.terminal {
+  position: relative;
+  z-index: 2;
+  width: 92%;
+  max-width: 980px;
+  margin: 5vh auto;
+  padding: 30px;
+  background: rgba(6,10,15,0.92);
+  border: 1px solid rgba(0,255,255,0.25);
+  box-shadow: 0 0 80px rgba(0,255,255,0.18);
+}
+
+.header {
+  display:flex;
+  gap:8px;
+  margin-bottom:18px;
+}
+.dot { width:12px;height:12px;border-radius:50%; }
+.red{background:#ff3b3b}
+.yellow{background:#ffd93b}
+.green{background:#3bff6b}
+
+#screen {
+  font-size: 20px;
+  line-height: 1.8;
+  min-height: 260px;
+  white-space: pre-wrap;
+}
+
+.system {
+  font-family: "Courier New", monospace;
+  color: #7ddcff;
+  font-size: 15px;
+}
+
+/* ================= OPTIONS ================= */
+.options {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 14px;
+}
+
+button {
+  background: transparent;
+  border: 1px solid rgba(0,255,255,0.45);
+  color: #b9faff;
+  padding: 14px;
+  font-family: "Courier New", monospace;
+  font-size: 15px;
+  cursor: pointer;
+  transition: .25s ease;
+}
+
+button:hover {
+  background: rgba(0,255,255,0.15);
+  box-shadow: 0 0 18px rgba(0,255,255,0.5);
+}
+
+.cursor {
+  display:inline-block;
+  width:10px;
+  background:#b9faff;
+  margin-left:4px;
+  animation: blink 1s infinite;
+}
+@keyframes blink {
+  0%,50%{opacity:1}
+  51%,100%{opacity:0}
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="matrix"></canvas>
+<div class="watermark">SHERRY &nbsp; SHERRY</div>
+
+<div class="terminal">
+  <div class="header">
+    <div class="dot red"></div>
+    <div class="dot yellow"></div>
+    <div class="dot green"></div>
+  </div>
+
+  <div id="screen"></div>
+  <div class="options" id="options"></div>
+</div>
+
+<script>
+/* ================= MATRIX EFFECT ================= */
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+const chars = "01SHERRY♥";
+const fontSize = 16;
+const columns = canvas.width / fontSize;
+const drops = Array(Math.floor(columns)).fill(1);
+
+function drawMatrix() {
+  ctx.fillStyle = "rgba(0,0,0,0.08)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "#00ffee";
+  ctx.font = fontSize + "px monospace";
+
+  for (let i=0;i<drops.length;i++) {
+    const text = chars[Math.floor(Math.random()*chars.length)];
+    ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+    if (drops[i]*fontSize > canvas.height && Math.random()>0.975)
+      drops[i]=0;
+    drops[i]++;
+  }
+}
+setInterval(drawMatrix,50);
+
+/* ================= TERMINAL LOGIC ================= */
+const screen = document.getElementById("screen");
+const optionsBox = document.getElementById("options");
+let step = 0;
+
+const messages = [
+`<span class="system">>> boot sequence started</span>
+
+Sherry,
+you are my peace in problems.
+Every thought of you
+feels like home.`,
+
+`I was afraid before.
+Afraid I might fail you.
+Afraid that I can hurt
+that's why i asked to leave.`,
+
+`But you stayed.
+Even when I doubted myself.
+Even when I feared.`,
+
+`Your patience
+taught me patience.
+Your faith
+taught me to believe.`,
+
+`Two hearts can hold the world.
+With you, I feel that strength.`,
+
+`You are not noise in my life.
+You are my ppeace.`,
+
+`I wrote this code last innerHeight
+it took me 3.49 hours.
+Because I wanted to make you feel special,
+because your are`,
+
+`Every line here
+is a promise
+wrapped in silence.`,
+
+`I don’t love loudly.
+I love deeply.`,
+
+`I care for you.
+Seriously.
+with all my heart.`,
+
+`Some people pass through life.
+Some are a blessing.
+You are the secondm a blessing.`,
+
+`Thank you
+for standing with me
+when I forgot my own worth.`,
+
+`I promised
+I won’t leave
+like I once said I would.`,
+
+`This isn’t for show.
+This is for truth.`,
+
+`If patience is love,
+I am patient.`,
+
+`If faith is love,
+I believe in us.`,
+
+`You are special.
+Not optional.
+Not temporary.`,
+
+`Every choice you click here
+mirrors my choice:
+to stay here with you.`,
+
+`You make my world brighter.
+Even in code and shadows.`,
+
+`I love you.
+I care for you.
+And I am here.`,
+
+`I see you.
+I hear you.
+I am yours.`,
+
+`You are my blessing.
+Always.`,
+
+`— Sharoon`
+];
+
+const options = [
+["continue","next","read on","stay"],
+["I’m listening","go ahead","keep going","next step"],
+["tell me more","continue","I’m here","next"],
+["proceed","read","next","continue"]
+];
+
+function typeText(text,i=0){
+  if(i<text.length){
+    screen.innerHTML+=text[i];
+    setTimeout(()=>typeText(text,i+1),22);
+  } else {
+    screen.innerHTML+="<span class='cursor'></span>";
+    showOptions();
+  }
+}
+
+function showOptions(){
+  optionsBox.innerHTML="";
+  options[step%options.length].forEach(o=>{
+    const b=document.createElement("button");
+    b.textContent=o;
+    b.onclick=next;
+    optionsBox.appendChild(b);
+  });
+}
+
+function next(){
+  optionsBox.innerHTML="";
+  screen.innerHTML="";
+  step++;
+  if(step<messages.length) typeText(messages[step]);
+}
+
+typeText(messages[0]);
+</script>
+
+</body>
+</html>
